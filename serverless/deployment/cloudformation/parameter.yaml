@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+    Environment:
+        Description: "The environment to deploy the stack to"
+        Type: String
+        AllowedValues:
+            - "dev"
+            - "prod"
+        Default: "dev"
+
+Conditions:
+    CreateResource: !Equals [true, false]
+
+Resources:
+    DummyResource:
+        Type: "AWS::CloudFormation::Stack"
+        Condition: CreateResource

@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    ParameterStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/parameter.yaml"
+
+    MappingStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/mapping.yaml"
+
+    VPCStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/vpc.yaml"
+
+    DatabaseStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/database.yaml"
+        DependsOn: VPCStack
+
+    LambdaStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/lambda.yaml"
+        DependsOn: DatabaseStack
+
+    S3Stack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/s3.yaml"
+
+    APIGatewayStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deploy-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/api-gateway.yaml"
+        DependsOn:
+            - LambdaStack
+            - S3Stack

@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CoffeeSupplierDBSubnetGroup:
+        Type: "AWS::RDS::DBSubnetGroup"
+        Properties:
+            DBSubnetGroupDescription: "Subnet group for RDS"
+            SubnetIds:
+                - !ImportValue CoffeeSupplierPublicSubnet01
+                - !ImportValue CoffeeSupplierPublicSubnet02
+
+    CoffeeSupplierDBSecurityGroup:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupDescription: Security group for RDS instance
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 3306
+                  ToPort: 3306
+                  CidrIp: 0.0.0.0/0
+
+    CoffeeSupplierDBInstance:
+        Type: "AWS::RDS::DBInstance"
+        DependsOn:
+            - CoffeeSupplierDBSubnetGroup
+            - CoffeeSupplierDBSecurityGroup
+        Properties:
+            DBInstanceIdentifier: CoffeeSupplierDBInstance
+            DBInstanceClass: db.t3.micro
+            Engine: mysql
+            EngineVersion: "8.0.35"
+            MasterUsername: younganswer
+            MasterUserPassword: younganswer
+            DBName: COFFEE_SUPPLIER
+            DBSubnetGroupName: !Ref CoffeeSupplierDBSubnetGroup
+            MultiAZ: false
+            AllocatedStorage: 20
+            MaxAllocatedStorage: 1000
+            StorageType: gp2
+            StorageEncrypted: true
+            PubliclyAccessible: true
+            VPCSecurityGroups:
+                - !Ref CoffeeSupplierDBSecurityGroup
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierDBInstance
+
+Outputs:
+    CoffeeSupplierDBInstanceEndpoint:
+        Description: "The endpoint address of the RDS instance"
+        Value: !GetAtt CoffeeSupplierDBInstance.Endpoint.Address
+        Export:
+            Name: "CoffeeSupplierDBInstanceEndpoint"

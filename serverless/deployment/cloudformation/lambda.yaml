@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CustomerLambda:
+        Type: AWS::Lambda::Function
+        Properties:
+            Role: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            Code:
+                S3Bucket: !Sub "deploy-${AWS::AccountId}-${AWS::Region}"
+                S3Key: "lambda/customer.zip"
+            Runtime: "nodejs20.x"
+            Handler: "index.handler"
+            FunctionName: "CustomerLambda"
+            Environment:
+                Variables:
+                    APP_DB_HOST: !ImportValue CoffeeSupplierDBInstanceEndpoint
+
+    CustomerLambdaLogGourp:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub "/aws/lambda/CustomerLambda"
+            RetentionInDays: 14
+        DeletionPolicy: Delete
+
+    EmployeeLambda:
+        Type: AWS::Lambda::Function
+        Properties:
+            Role: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            Code:
+                S3Bucket: !Sub "deploy-${AWS::AccountId}-${AWS::Region}"
+                S3Key: "lambda/employee.zip"
+            Runtime: "nodejs20.x"
+            Handler: "index.handler"
+            FunctionName: "EmployeeLambda"
+            Environment:
+                Variables:
+                    APP_DB_HOST: !ImportValue CoffeeSupplierDBInstanceEndpoint
+
+    EmployeeLambdaLogGourp:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub "/aws/lambda/EmployeeLambda"
+            RetentionInDays: 14
+        DeletionPolicy: Delete
+
+Outputs:
+    CustomerLambda:
+        Value: !GetAtt CustomerLambda.Arn
+        Export:
+            Name: CustomerLambda
+
+    EmployeeLambda:
+        Value: !GetAtt EmployeeLambda.Arn
+        Export:
+            Name: EmployeeLambda

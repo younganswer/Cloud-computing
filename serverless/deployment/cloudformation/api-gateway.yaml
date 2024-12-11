@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CustomerAPIGateway:
+        Type: "AWS::ApiGatewayV2::Api"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            ApiKeySelectionExpression: "$request.header.x-api-key"
+            CorsConfiguration:
+                AllowCredentials: false
+                AllowOrigins:
+                    - !Sub "http://static-website-${AWS::AccountId}-${AWS::Region}.s3-website-${AWS::Region}.amazonaws.com"
+                MaxAge: 0
+            DisableExecuteApiEndpoint: false
+            Name: "CustomerAPIGateway"
+            ProtocolType: "HTTP"
+            RouteSelectionExpression: "$request.method $request.path"
+            Tags: {}
+
+    CustomerAPIGatewayIntegration:
+        Type: "AWS::ApiGatewayV2::Integration"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            ApiId:
+                Ref: "CustomerAPIGateway"
+            ConnectionType: "INTERNET"
+            IntegrationMethod: "POST"
+            IntegrationType: "AWS_PROXY"
+            IntegrationUri:
+                Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:CustomerLambda"
+            PayloadFormatVersion: "2.0"
+            TimeoutInMillis: 30000
+        DependsOn: "CustomerAPIGateway"
+
+    CustomerAPIGatewayRoute:
+        Type: "AWS::ApiGatewayV2::Route"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            ApiId:
+                Ref: "CustomerAPIGateway"
+            RouteKey: "ANY /{proxy+}"
+            Target:
+                Fn::Join:
+                    [
+                        "",
+                        [
+                            "integrations/",
+                            { Ref: "CustomerAPIGatewayIntegration" },
+                        ],
+                    ]
+        DependsOn: "CustomerAPIGatewayIntegration"
+
+    CustomerAPIGatewayStage:
+        Type: "AWS::ApiGatewayV2::Stage"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            AccessLogSettings:
+                DestinationArn:
+                    Fn::GetAtt:
+                        - CustomerAPIGatewayLogGroup
+                        - Arn
+                Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}'
+            ApiId:
+                Ref: "CustomerAPIGateway"
+            AutoDeploy: true
+            StageName: "$default"
+
+    CustomerAPIGatewayLogGroup:
+        Type: "AWS::Logs::LogGroup"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            LogGroupName: !Sub "/aws/api-gateway/CustomerAPIGateway"
+            RetentionInDays: 14
+
+    CustomerLambdaPermission:
+        Type: "AWS::Lambda::Permission"
+        DeletionPolicy: "Delete"
+        DependsOn: "CustomerAPIGateway"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName:
+                Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:CustomerLambda"
+            Principal: "apigateway.amazonaws.com"
+            SourceArn:
+                Fn::Sub: "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CustomerAPIGateway}/*/*/*"
+
+    EmployeeAPIGateway:
+        Type: "AWS::ApiGatewayV2::Api"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            ApiKeySelectionExpression: "$request.header.x-api-key"
+            CorsConfiguration:
+                AllowCredentials: false
+                AllowOrigins:
+                    - !Sub "http://static-website-${AWS::AccountId}-${AWS::Region}.s3-website-${AWS::Region}.amazonaws.com"
+                MaxAge: 0
+            DisableExecuteApiEndpoint: false
+            Name: "EmployeeAPIGateway"
+            ProtocolType: "HTTP"
+            RouteSelectionExpression: "$request.method $request.path"
+            Tags: {}
+
+    EmployeeAPIGatewayIntegration:
+        Type: "AWS::ApiGatewayV2::Integration"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            ApiId:
+                Ref: "EmployeeAPIGateway"
+            ConnectionType: "INTERNET"
+            IntegrationMethod: "POST"
+            IntegrationType: "AWS_PROXY"
+            IntegrationUri:
+                Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:EmployeeLambda"
+            PayloadFormatVersion: "2.0"
+            TimeoutInMillis: 30000
+        DependsOn: "EmployeeAPIGateway"
+
+    EmployeeAPIGatewayRoute:
+        Type: "AWS::ApiGatewayV2::Route"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            ApiId:
+                Ref: "EmployeeAPIGateway"
+            RouteKey: "ANY /{proxy+}"
+            Target:
+                Fn::Join:
+                    [
+                        "",
+                        [
+                            "integrations/",
+                            { Ref: "EmployeeAPIGatewayIntegration" },
+                        ],
+                    ]
+        DependsOn: "EmployeeAPIGatewayIntegration"
+
+    EmployeeAPIGatewayStage:
+        Type: "AWS::ApiGatewayV2::Stage"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            AccessLogSettings:
+                DestinationArn:
+                    Fn::GetAtt:
+                        - EmployeeAPIGatewayLogGroup
+                        - Arn
+                Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}'
+            ApiId:
+                Ref: "EmployeeAPIGateway"
+            AutoDeploy: true
+            StageName: "$default"
+
+    EmployeeAPIGatewayLogGroup:
+        Type: "AWS::Logs::LogGroup"
+        DeletionPolicy: "Delete"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            LogGroupName: !Sub "/aws/api-gateway/EmployeeAPIGateway"
+            RetentionInDays: 14
+
+    EmployeeLambdaPermission:
+        Type: "AWS::Lambda::Permission"
+        DeletionPolicy: "Delete"
+        DependsOn: "EmployeeAPIGateway"
+        UpdateReplacePolicy: "Retain"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName:
+                Fn::Sub: "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:EmployeeLambda"
+            Principal: "apigateway.amazonaws.com"
+            SourceArn:
+                Fn::Sub: "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${EmployeeAPIGateway}/*/*/*"
+
+Outputs:
+    CustomerAPIGateway:
+        Value: !Ref CustomerAPIGateway
+        Export:
+            Name: CustomerAPIGateway
+
+    EmployeeAPIGateway:
+        Value: !Ref EmployeeAPIGateway
+        Export:
+            Name: EmployeeAPIGateway

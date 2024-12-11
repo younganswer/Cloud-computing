@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CoffeeSupplierVPC:
+        Type: AWS::EC2::VPC
+        Properties:
+            CidrBlock: 10.16.0.0/16
+            EnableDnsSupport: true
+            EnableDnsHostnames: true
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierVPC
+
+    CoffeeSupplierIGW:
+        Type: AWS::EC2::InternetGateway
+        DependsOn: CoffeeSupplierVPC
+        Properties:
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierIGW
+
+    CoffeeSupplierAttachGateway:
+        Type: AWS::EC2::VPCGatewayAttachment
+        DependsOn:
+            - CoffeeSupplierVPC
+            - CoffeeSupplierIGW
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            InternetGatewayId: !Ref CoffeeSupplierIGW
+
+    CoffeeSupplierPublicSubnet01:
+        Type: AWS::EC2::Subnet
+        DependsOn:
+            - CoffeeSupplierAttachGateway
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            AvailabilityZone:
+                Fn::Select:
+                    - 0
+                    - Fn::GetAZs: ""
+            CidrBlock: 10.16.10.0/24
+            MapPublicIpOnLaunch: true
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPublicSubnet01
+
+    CoffeeSupplierPublicSubnet02:
+        Type: AWS::EC2::Subnet
+        DependsOn:
+            - CoffeeSupplierAttachGateway
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            AvailabilityZone:
+                Fn::Select:
+                    - 1
+                    - Fn::GetAZs: ""
+            CidrBlock: 10.16.20.0/24
+            MapPublicIpOnLaunch: true
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPublicSubnet02
+
+    CoffeeSupplierPublicRouteTable:
+        Type: AWS::EC2::RouteTable
+        DependsOn:
+            - CoffeeSupplierPublicSubnet01
+            - CoffeeSupplierPublicSubnet02
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPublicRouteTable
+
+    CoffeeSupplierPublicRoute:
+        Type: AWS::EC2::Route
+        DependsOn:
+            - CoffeeSupplierPublicRouteTable
+        Properties:
+            DestinationCidrBlock: 0.0.0.0/0
+            RouteTableId: !Ref CoffeeSupplierPublicRouteTable
+            GatewayId: !Ref CoffeeSupplierIGW
+
+    CoffeeSupplierPublicSubnet01RouteAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        DependsOn:
+            - CoffeeSupplierPublicRouteTable
+            - CoffeeSupplierPublicSubnet01
+        Properties:
+            SubnetId: !Ref CoffeeSupplierPublicSubnet01
+            RouteTableId: !Ref CoffeeSupplierPublicRouteTable
+
+    CoffeeSupplierPublicSubnet02RouteAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        DependsOn:
+            - CoffeeSupplierPublicRouteTable
+            - CoffeeSupplierPublicSubnet02
+        Properties:
+            SubnetId: !Ref CoffeeSupplierPublicSubnet02
+            RouteTableId: !Ref CoffeeSupplierPublicRouteTable
+
+    CoffeeSupplierPrivateSubnet01:
+        Type: AWS::EC2::Subnet
+        DependsOn:
+            - CoffeeSupplierAttachGateway
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            AvailabilityZone:
+                Fn::Select:
+                    - 0
+                    - Fn::GetAZs: ""
+            CidrBlock: 10.16.30.0/24
+            AvailabilityZone: !Select
+                - 0
+                - !GetAZs
+                  Ref: AWS::Region
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPrivateSubnet01
+
+    CoffeeSupplierPrivateSubnet02:
+        Type: AWS::EC2::Subnet
+        DependsOn:
+            - CoffeeSupplierAttachGateway
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            AvailabilityZone:
+                Fn::Select:
+                    - 1
+                    - Fn::GetAZs: ""
+            CidrBlock: 10.16.40.0/24
+            AvailabilityZone: !Select
+                - 1
+                - !GetAZs
+                  Ref: AWS::Region
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPrivateSubnet02
+
+    CoffeeSupplierPrivateRouteTable01:
+        Type: AWS::EC2::RouteTable
+        DependsOn:
+            - CoffeeSupplierPrivateSubnet01
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPrivateRouteTable01
+
+    CoffeeSupplierPrivateRouteTable02:
+        Type: AWS::EC2::RouteTable
+        DependsOn:
+            - CoffeeSupplierPrivateSubnet02
+        Properties:
+            VpcId: !Ref CoffeeSupplierVPC
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierPrivateRouteTable02
+
+    CoffeeSupplierPrivateRouteTableAssociation01:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        DependsOn:
+            - CoffeeSupplierPrivateRouteTable01
+            - CoffeeSupplierPrivateSubnet01
+        Properties:
+            RouteTableId: !Ref CoffeeSupplierPrivateRouteTable01
+            SubnetId: !Ref CoffeeSupplierPrivateSubnet01
+
+    CoffeeSupplierPrivateRouteTableAssociation02:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        DependsOn:
+            - CoffeeSupplierPrivateRouteTable02
+            - CoffeeSupplierPrivateSubnet02
+        Properties:
+            RouteTableId: !Ref CoffeeSupplierPrivateRouteTable02
+            SubnetId: !Ref CoffeeSupplierPrivateSubnet02
+
+Outputs:
+    CoffeeSupplierVPC:
+        Description: "The ID of the VPC"
+        Value: !Ref CoffeeSupplierVPC
+        Export:
+            Name: "CoffeeSupplierVPC"
+    CoffeeSupplierAttachGateway:
+        Description: "The ID of the gateway attachment"
+        Value: !Ref CoffeeSupplierAttachGateway
+        Export:
+            Name: "CoffeeSupplierAttachGateway"
+    CoffeeSupplierPublicSubnet01:
+        Description: "The ID of the public subnet 01"
+        Value: !Ref CoffeeSupplierPublicSubnet01
+        Export:
+            Name: "CoffeeSupplierPublicSubnet01"
+    CoffeeSupplierPublicSubnet02:
+        Description: "The ID of the public subnet 02"
+        Value: !Ref CoffeeSupplierPublicSubnet02
+        Export:
+            Name: "CoffeeSupplierPublicSubnet02"
+    CoffeeSupplierPrivateSubnet01:
+        Description: "The ID of the private subnet 01"
+        Value: !Ref CoffeeSupplierPrivateSubnet01
+        Export:
+            Name: "CoffeeSupplierPrivateSubnet01"
+    CoffeeSupplierPrivateSubnet02:
+        Description: "The ID of the private subnet 02"
+        Value: !Ref CoffeeSupplierPrivateSubnet02
+        Export:
+            Name: "CoffeeSupplierPrivateSubnet02"
