@@ -2,6 +2,8 @@
 
 This repository contains the cloud computing practice course.
 
+<br/>
+
 You can find more information in the following directories:
 
 -   [auto-scaling](auto-scaling)
