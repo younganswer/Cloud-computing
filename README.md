@@ -15,7 +15,3 @@ This repository is licensed under the MIT License. See [LICENSE](LICENSE) for mo
 ## Contact
 
 You can contact me at [email](mailto:younganswer@kookmin.ac.kr)
-
-```
-
-```
