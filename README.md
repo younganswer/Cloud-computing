@@ -6,9 +6,9 @@ This repository contains the cloud computing practice course.
 
 You can find more information in the following directories:
 
--   [auto-scaling](/auto-scaling/README.md)
--   [containerization](/containerization/README.md)
--   [serverless](/serverless/README.md)
+-   [auto-scaling](auto-scaling)
+-   [containerization](containerization)
+-   [serverless](serverless)
 
 <br/>
 <br/>
