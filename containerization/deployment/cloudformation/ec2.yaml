@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CoffeeSupplierELBCustomerSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupName: CoffeeSupplierELBCustomerSecurityGroup
+            GroupDescription: "Allow inbound traffic on port 80"
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  CidrIp: 0.0.0.0/0
+
+    CoffeeSupplierELBEmployeeSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupName: CoffeeSupplierELBEmployeeSecurityGroup
+            GroupDescription: "Allow inbound traffic on port 8080"
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 8080
+                  ToPort: 8080
+                  CidrIp: 0.0.0.0/0
+
+    CoffeeSupplierECSCustomerSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupName: CoffeeSupplierECSCustomerSecurityGroup
+            GroupDescription: "Allow inbound traffic on port 80"
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 80
+                  ToPort: 80
+                  SourceSecurityGroupId: !Ref CoffeeSupplierELBCustomerSecurityGroup
+
+    CoffeeSupplierECSEmployeeSecurityGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupName: CoffeeSupplierECSEmployeeSecurityGroup
+            GroupDescription: "Allow inbound traffic on port 8080"
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 8080
+                  ToPort: 8080
+                  SourceSecurityGroupId: !Ref CoffeeSupplierELBEmployeeSecurityGroup
+
+    CoffeeSupplierDBCustomerSecurityGroup:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupName: CoffeeSupplierDBCustomerSecurityGroup
+            GroupDescription: Security group for RDS instance
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 3306
+                  ToPort: 3306
+                  SourceSecurityGroupId: !Ref CoffeeSupplierECSCustomerSecurityGroup
+
+    CoffeeSupplierDBEmployeeSecurityGroup:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupName: CoffeeSupplierDBEmployeeSecurityGroup
+            GroupDescription: Security group for RDS instance
+            VpcId: !ImportValue CoffeeSupplierVPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 3306
+                  ToPort: 3306
+                  SourceSecurityGroupId: !Ref CoffeeSupplierECSEmployeeSecurityGroup
+
+Outputs:
+    CoffeeSupplierELBCustomerSecurityGroup:
+        Description: "The security group for the customer ELB"
+        Value: !Ref CoffeeSupplierELBCustomerSecurityGroup
+        Export:
+            Name: "CoffeeSupplierELBCustomerSecurityGroup"
+
+    CoffeeSupplierELBEmployeeSecurityGroup:
+        Description: "The security group for the employee ELB"
+        Value: !Ref CoffeeSupplierELBEmployeeSecurityGroup
+        Export:
+            Name: "CoffeeSupplierELBEmployeeSecurityGroup"
+
+    CoffeeSupplierECSCustomerSecurityGroup:
+        Description: "The security group for the customer ECS"
+        Value: !Ref CoffeeSupplierECSCustomerSecurityGroup
+        Export:
+            Name: "CoffeeSupplierECSCustomerSecurityGroup"
+
+    CoffeeSupplierECSEmployeeSecurityGroup:
+        Description: "The security group for the employee ECS"
+        Value: !Ref CoffeeSupplierECSEmployeeSecurityGroup
+        Export:
+            Name: "CoffeeSupplierECSEmployeeSecurityGroup"
+
+    CoffeeSupplierDBCustomerSecurityGroup:
+        Description: "The security group for the customer RDS instance"
+        Value: !Ref CoffeeSupplierDBCustomerSecurityGroup
+        Export:
+            Name: "CoffeeSupplierDBCustomerSecurityGroup"
+
+    CoffeeSupplierDBEmployeeSecurityGroup:
+        Description: "The security group for the employee RDS instance"
+        Value: !Ref CoffeeSupplierDBEmployeeSecurityGroup
+        Export:
+            Name: "CoffeeSupplierDBEmployeeSecurityGroup"

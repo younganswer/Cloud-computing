@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    VPCStack:
+        Type: AWS::CloudFormation::Stack
+        Properties:
+            TemplateURL: !Sub "https://deployment-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/vpc.yaml"
+
+    EC2Stack:
+        Type: AWS::CloudFormation::Stack
+        DependsOn:
+            - VPCStack
+        Properties:
+            TemplateURL: !Sub "https://deployment-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/ec2.yaml"
+
+    DatabaseStack:
+        Type: AWS::CloudFormation::Stack
+        DependsOn:
+            - VPCStack
+            - EC2Stack
+        Properties:
+            TemplateURL: !Sub "https://deployment-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/database.yaml"
+
+    ELBStack:
+        Type: AWS::CloudFormation::Stack
+        DependsOn:
+            - VPCStack
+            - EC2Stack
+        Properties:
+            TemplateURL: !Sub "https://deployment-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/elb.yaml"
+
+    ECSStack:
+        Type: AWS::CloudFormation::Stack
+        DependsOn:
+            - DatabaseStack
+            - ELBStack
+        Properties:
+            TemplateURL: !Sub "https://deployment-${AWS::AccountId}-${AWS::Region}.s3.${AWS::Region}.amazonaws.com/cloudformation/ecs.yaml"

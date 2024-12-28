@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CoffeeSupplierCustomerTargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            Name: "CustomerTargetGroup"
+            Port: 80
+            Protocol: "HTTP"
+            TargetType: "ip"
+            VpcId: !ImportValue CoffeeSupplierVPC
+            HealthCheckEnabled: true
+            HealthCheckIntervalSeconds: 30
+            HealthCheckPath: "/health"
+            HealthCheckPort: "80"
+            HealthCheckProtocol: "HTTP"
+            HealthCheckTimeoutSeconds: 5
+            HealthyThresholdCount: 2
+            UnhealthyThresholdCount: 2
+
+    CoffeeSupplierEmployeeTargetGroup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties:
+            Name: "EmployeeTargetGroup"
+            Port: 8080
+            Protocol: "HTTP"
+            TargetType: "ip"
+            VpcId: !ImportValue CoffeeSupplierVPC
+            HealthCheckEnabled: true
+            HealthCheckIntervalSeconds: 30
+            HealthCheckPath: "/health"
+            HealthCheckPort: "8080"
+            HealthCheckProtocol: "HTTP"
+            HealthCheckTimeoutSeconds: 5
+            HealthyThresholdCount: 2
+            UnhealthyThresholdCount: 2
+
+    CoffeeSupplierLoadBalancer:
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        Properties:
+            Name: "CoffeeSupplierLoadBalancer"
+            Type: "application"
+            IpAddressType: "ipv4"
+            Scheme: "internet-facing"
+            SecurityGroups:
+                - !ImportValue CoffeeSupplierELBCustomerSecurityGroup
+                - !ImportValue CoffeeSupplierELBEmployeeSecurityGroup
+            Subnets:
+                - !ImportValue CoffeeSupplierPublicSubnet01
+                - !ImportValue CoffeeSupplierPublicSubnet02
+            Tags:
+                - Key: "Name"
+                  Value: "CoffeeSupplierLoadBalancer"
+
+    CoffeeSupplierCustomerListener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Properties:
+            DefaultActions:
+                - TargetGroupArn: !Ref CoffeeSupplierCustomerTargetGroup
+                  Type: "forward"
+            LoadBalancerArn: !Ref CoffeeSupplierLoadBalancer
+            Port: 80
+            Protocol: "HTTP"
+        DependsOn:
+            - CoffeeSupplierCustomerTargetGroup
+
+    CoffeeSupplierEmployeeListener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Properties:
+            DefaultActions:
+                - TargetGroupArn: !Ref CoffeeSupplierEmployeeTargetGroup
+                  Type: "forward"
+            LoadBalancerArn: !Ref CoffeeSupplierLoadBalancer
+            Port: 8080
+            Protocol: "HTTP"
+        DependsOn:
+            - CoffeeSupplierEmployeeTargetGroup
+
+Outputs:
+    CoffeeSupplierCustomerTargetGroup:
+        Value: !Ref CoffeeSupplierCustomerTargetGroup
+        Export:
+            Name: "CoffeeSupplierCustomerTargetGroup"
+    CoffeeSupplierEmployeeTargetGroup:
+        Value: !Ref CoffeeSupplierEmployeeTargetGroup
+        Export:
+            Name: "CoffeeSupplierEmployeeTargetGroup"

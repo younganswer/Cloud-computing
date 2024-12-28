@@ -1,0 +1,208 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+    CoffeeSupplierCluster:
+        Type: AWS::ECS::Cluster
+        Properties:
+            ClusterName: "CoffeeSupplier"
+            CapacityProviders:
+                - "FARGATE"
+                - "FARGATE_SPOT"
+            ServiceConnectDefaults:
+                Namespace: !Sub arn:aws:servicediscovery:${AWS::Region}:${AWS::AccountId}:namespace/ns-b2iuksyk54ue2lcr
+
+    CoffeeSupplierCustomerLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: "/ecs/Customer"
+
+    CoffeeSupplierCustomerTaskDefinition:
+        Type: AWS::ECS::TaskDefinition
+        DependsOn:
+            - CoffeeSupplierCustomerLogGroup
+        Properties:
+            Family: "customer"
+            TaskRoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            ExecutionRoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            NetworkMode: awsvpc
+            RunTimePlatform:
+                CpuArchitecture: "X86_64"
+                OperatingSystemFamily: "LINUX"
+            RequiresCompatibilities:
+                - "FARGATE"
+            Cpu: 1024
+            Memory: 2048
+            ContainerDefinitions:
+                - Name: "customer-node-v1"
+                  Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/coffee-supplier/customer:latest"
+                  Cpu: 0
+                  Memory: 2048
+                  MemoryReservation: 1024
+                  PortMappings:
+                      - ContainerPort: 80
+                        HostPort: 80
+                        Protocol: tcp
+                        AppProtocol: http
+                  Essential: true
+                  Environment:
+                      - Name: "APP_DB_HOST"
+                        Value: !ImportValue CoffeeSupplierDBInstanceEndpoint
+                  LogConfiguration:
+                      LogDriver: "awslogs"
+                      Options:
+                          awslogs-group: !Ref CoffeeSupplierCustomerLogGroup
+                          awslogs-region: !Ref "AWS::Region"
+                          awslogs-stream-prefix: "ecs"
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierCustomerTaskDefinition
+
+    CoffeeSupplierCustomerService:
+        Type: AWS::ECS::Service
+        DependsOn:
+            - CoffeeSupplierCluster
+            - CoffeeSupplierCustomerTaskDefinition
+        Properties:
+            ServiceName: "customer"
+            Cluster: !Ref CoffeeSupplierCluster
+            AvailabilityZoneRebalancing: "ENABLED"
+            DesiredCount: 2
+            LaunchType: "FARGATE"
+            EnableExecuteCommand: true
+            NetworkConfiguration:
+                AwsvpcConfiguration:
+                    AssignPublicIp: "DISABLED"
+                    SecurityGroups:
+                        - !ImportValue CoffeeSupplierECSCustomerSecurityGroup
+                    Subnets:
+                        - !ImportValue CoffeeSupplierPrivateSubnet01
+                        - !ImportValue CoffeeSupplierPrivateSubnet02
+            TaskDefinition: !Ref CoffeeSupplierCustomerTaskDefinition
+            LoadBalancers:
+                - TargetGroupArn: !ImportValue CoffeeSupplierCustomerTargetGroup
+                  ContainerName: "customer-node-v1"
+                  ContainerPort: 80
+
+    CoffeeSupplierCustomerScalingTarget:
+        Type: AWS::ApplicationAutoScaling::ScalableTarget
+        DependsOn:
+            - CoffeeSupplierCustomerService
+        Properties:
+            MinCapacity: 2
+            MaxCapacity: 4
+            ResourceId: "service/CoffeeSupplier/customer"
+            RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            ScalableDimension: "ecs:service:DesiredCount"
+            ServiceNamespace: "ecs"
+
+    CoffeeSupplierCustomerScalingPolicy:
+        Type: AWS::ApplicationAutoScaling::ScalingPolicy
+        DependsOn:
+            - CoffeeSupplierCustomerScalingTarget
+        Properties:
+            PolicyName: "CustomerScalingPolicy"
+            PolicyType: "TargetTrackingScaling"
+            ScalingTargetId: !Ref CoffeeSupplierCustomerScalingTarget
+            TargetTrackingScalingPolicyConfiguration:
+                TargetValue: 50
+                PredefinedMetricSpecification:
+                    PredefinedMetricType: "ECSServiceAverageCPUUtilization"
+                ScaleInCooldown: 60
+                ScaleOutCooldown: 60
+
+    CoffeeSupplierEmployeeLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: "/ecs/Employee"
+
+    CoffeeSupplierEmployeeTaskDefinition:
+        Type: AWS::ECS::TaskDefinition
+        Properties:
+            Family: "employee"
+            TaskRoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            ExecutionRoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            NetworkMode: awsvpc
+            RunTimePlatform:
+                CpuArchitecture: "X86_64"
+                OperatingSystemFamily: "LINUX"
+            RequiresCompatibilities:
+                - "FARGATE"
+            Cpu: 1024
+            Memory: 2048
+            ContainerDefinitions:
+                - Name: "employee-node-v1"
+                  Image: !Sub "${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/coffee-supplier/employee:latest"
+                  Cpu: 0
+                  Memory: 2048
+                  MemoryReservation: 1024
+                  PortMappings:
+                      - ContainerPort: 8080
+                        HostPort: 8080
+                        Protocol: tcp
+                        AppProtocol: http
+                  Essential: true
+                  Environment:
+                      - Name: "APP_DB_HOST"
+                        Value: !ImportValue CoffeeSupplierDBInstanceEndpoint
+                  LogConfiguration:
+                      LogDriver: "awslogs"
+                      Options:
+                          awslogs-group: "/ecs/Employee"
+                          awslogs-region: !Ref "AWS::Region"
+                          awslogs-stream-prefix: "ecs"
+            Tags:
+                - Key: Name
+                  Value: CoffeeSupplierEmployeeTaskDefinition
+
+    CoffeeSupplierEmployeeService:
+        Type: AWS::ECS::Service
+        DependsOn:
+            - CoffeeSupplierCluster
+            - CoffeeSupplierEmployeeTaskDefinition
+        Properties:
+            ServiceName: "employee"
+            Cluster: !Ref CoffeeSupplierCluster
+            AvailabilityZoneRebalancing: "ENABLED"
+            DesiredCount: 2
+            LaunchType: "FARGATE"
+            EnableExecuteCommand: true
+            NetworkConfiguration:
+                AwsvpcConfiguration:
+                    AssignPublicIp: "DISABLED"
+                    SecurityGroups:
+                        - !ImportValue CoffeeSupplierECSEmployeeSecurityGroup
+                    Subnets:
+                        - !ImportValue CoffeeSupplierPrivateSubnet01
+                        - !ImportValue CoffeeSupplierPrivateSubnet02
+            TaskDefinition: !Ref CoffeeSupplierEmployeeTaskDefinition
+            LoadBalancers:
+                - TargetGroupArn: !ImportValue CoffeeSupplierEmployeeTargetGroup
+                  ContainerName: "employee-node-v1"
+                  ContainerPort: 8080
+
+    CoffeeSupplierEmployeeScalingTarget:
+        Type: AWS::ApplicationAutoScaling::ScalableTarget
+        DependsOn:
+            - CoffeeSupplierEmployeeService
+        Properties:
+            MinCapacity: 2
+            MaxCapacity: 4
+            ResourceId: "service/CoffeeSupplier/employee"
+            RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
+            ScalableDimension: "ecs:service:DesiredCount"
+            ServiceNamespace: "ecs"
+
+    CoffeeSupplierEmployeeScalingPolicy:
+        Type: AWS::ApplicationAutoScaling::ScalingPolicy
+        DependsOn:
+            - CoffeeSupplierEmployeeScalingTarget
+        Properties:
+            PolicyName: "EmployeeScalingPolicy"
+            PolicyType: "TargetTrackingScaling"
+            ScalingTargetId: !Ref CoffeeSupplierEmployeeScalingTarget
+            TargetTrackingScalingPolicyConfiguration:
+                TargetValue: 50
+                PredefinedMetricSpecification:
+                    PredefinedMetricType: "ECSServiceAverageCPUUtilization"
+                ScaleInCooldown: 60
+                ScaleOutCooldown: 60
