@@ -1,6 +1,6 @@
 # Containerization
 
-Deployed a fully-managed microservice architecture using AWS ECS Fargate, leveraging containerization to achieve scalability, reliability, and cost efficiency. By utilizing the serverless Fargate model, eliminated the need to manage underlying EC2 instances, allowing seamless focus on application development. Integrated with AWS services like Application Load Balancer for traffic distribution and CloudWatch for centralized monitoring and logging. Automated scaling through ECS Service Auto Scaling, ensuring optimal resource utilization under varying loads while maintaining high availability. This architecture streamlines operations and delivers a robust foundation for modern, cloud-native applications.
+This project demonstrates the deployment of a fully-managed microservice architecture using AWS ECS Fargate, leveraging containerization to achieve scalability, reliability, and cost efficiency. By utilizing the serverless Fargate model, eliminated the need to manage underlying EC2 instances, allowing seamless focus on application development. The architecture integrates with AWS services like Application Load Balancer for traffic distribution and CloudWatch for centralized monitoring and logging. Automated scaling through ECS Service Auto Scaling, ensuring optimal resource utilization under varying loads while maintaining high availability. This architecture streamlines operations and delivers a robust foundation for modern, cloud-native applications.
 
 <br/>
 <br/>

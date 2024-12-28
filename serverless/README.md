@@ -1,6 +1,6 @@
 # Serverless computing
 
-Serverless computing is a cloud computing execution model in which the cloud provider allocates machine resources on demand, taking care of the servers on behalf of their customers. Serverless computing does not eliminate servers, but instead seeks to emphasize the idea that computing resource considerations can be moved into the background during the development process.
+Serverless computing is a cloud computing execution model where the cloud provider dynamically manages the allocation of machine resources. In this model, developers can focus on writing code without worrying about the underlying infrastructure. The term "serverless" does not mean that servers are no longer involved. Rather, it emphasizes that the operational aspects of server management are abstracted away from the developer.
 
 <br/>
 <br/>
