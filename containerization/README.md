@@ -5,16 +5,16 @@ This project demonstrates the deployment of a fully-managed microservice archite
 <br/>
 <br/>
 
-# Background
+## Background
 
 Due to the lack of IAM account creation permissions for the assigned IAM account, I was unable to use AWS CDK. Because AWS CDK Bootstrap requires IAM account creation permissions. Therefore, I write shell scripts manually.
 
 <br/>
 <br/>
 
-# Supported Platforms
+## Supported Platforms
 
-## AWS CLI version
+### AWS CLI version
 
 ```
 $ aws --version
@@ -24,9 +24,9 @@ aws-cli/2.22.7 Python/3.12.6 Darwin/24.1.0 exe/x86_64
 <br/>
 <br/>
 
-# Getting started
+## Getting started
 
-## Deployment
+### Deployment
 
 It deploys cloudformation stack using `/deployment/cloudformation/main.yaml` template.
 
@@ -35,17 +35,17 @@ Check the deployments in [deployment](deployment) directory.
 <br/>
 <br/>
 
-# Running script
+## Running script
 
 Script uses `AWS_PROFILE` environment variable to determine which AWS profile to use. If you want to use a different profile, you can set the `AWS_PROFILE` environment variable to the desired profile or use the `--profile` option.
 
-## Deploy
+### Deploy
 
 ```
 $ bash deploy.sh --profile <profile>
 ```
 
-## Destroy
+### Destroy
 
 ```
 $ bash destroy.sh --profile <profile>
