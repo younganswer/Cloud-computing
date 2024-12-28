@@ -11,8 +11,6 @@ It deploys main stack using `/cloudformation/main.yaml` template.
 
 Main stack creates nested stacks for the following resources:
 
--   Parameter stack
--   Mapping stack
 -   VPC stack
 -   Database stack
 -   Lambda stack
