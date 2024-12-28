@@ -9,6 +9,9 @@ Cloud computing also supports a variety of services, including infrastructure-as
 In this repository, you'll find practical examples and labs related to cloud computing, including containerisation and serverless architectures.
 
 <br/>
+<br/>
+
+## Project
 
 You can find more information in the following projects(directories):
 
