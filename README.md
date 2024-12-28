@@ -6,7 +6,6 @@ This repository contains the cloud computing practice course.
 
 You can find more information in the following directories:
 
--   [auto-scaling](auto-scaling)
 -   [containerization](containerization)
 -   [serverless](serverless)
 
