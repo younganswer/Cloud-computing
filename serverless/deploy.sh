@@ -21,13 +21,13 @@ clear
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --profile ${AWS_PROFILE} --query "Account" --output text)
 AWS_REGION=$(aws configure get region --profile ${AWS_PROFILE})
 
-create_bucket "deploy-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+create_bucket "deployment-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
-upload "cloudformation" "deploy-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+upload "cloudformation" "deployment-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
-upload "lambda" "deploy-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+upload "lambda" "deployment-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
-deploy_stack "CoffeeSupplier" "deploy-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+deploy_stack "CoffeeSupplier" "deployment-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 
 build_static_website "static-website" "CoffeeSupplier"
 
