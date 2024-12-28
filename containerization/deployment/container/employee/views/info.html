@@ -1,0 +1,70 @@
+<head>
+	<style>
+		.info-layout table {
+			border-collapse: collapse;
+		}
+		.info-layout th, .info-layout td {
+			padding-right: 8px;
+		}
+	</style>
+</head>
+<div class="info">
+	<h2>ECS Container Information</h2>
+	<div class="info-layout">
+		<table>
+			<tr>
+				<th>Type</th>
+				<th>Value</th>
+			</tr>
+			<tr>
+				<th></th>
+				<th></th>
+			</tr>
+			<tr>
+				<td>Current Host</td>
+				<td>{{ host }}</td>
+			</tr>
+			<tr>
+				<td>Launch Type</td>
+				<td>{{ launch_type }}</td>
+			</tr>
+			<tr>
+				<td>Cluster</td>
+				<td>{{ cluster }}</td>
+			</tr>
+			<tr>
+				<td>Task ARN</td>
+				<td>{{ task_arn }}</td>
+			</tr>
+			<tr>
+				<td>Container ARN</td>
+				<td>{{ container_arn }}</td>
+			</tr>
+			<tr>
+				<td>Container Image</td>
+				<td>{{ container_image }}</td>
+			</tr>
+			<tr>
+				<td>Public IP Address</td>
+				<td>{{ public_ip }}</td>
+			</tr>
+			<tr>
+				<td>Country Name</td>
+				<td>{{ geo_country_name }}</td>
+			</tr>
+			<tr>
+				<td>Region Name</td>
+				<td>{{ geo_region_name }}</td>
+			</tr>
+			</tr>
+			<tr>
+				<td>Timezone</td>
+				<td>{{ geo_timezone }}</td>
+			</tr>
+			<tr>
+				<td>Latitude, Longitude</td>
+				<td>{{ geo_lat_long }}</td>
+			</tr> 
+		</table>
+	</div>
+</div>
