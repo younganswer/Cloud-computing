@@ -104,7 +104,7 @@ Resources:
             PolicyType: "TargetTrackingScaling"
             ScalingTargetId: !Ref CoffeeSupplierCustomerScalingTarget
             TargetTrackingScalingPolicyConfiguration:
-                TargetValue: 50
+                TargetValue: 40
                 PredefinedMetricSpecification:
                     PredefinedMetricType: "ECSServiceAverageCPUUtilization"
                 ScaleInCooldown: 60
@@ -201,7 +201,7 @@ Resources:
             PolicyType: "TargetTrackingScaling"
             ScalingTargetId: !Ref CoffeeSupplierEmployeeScalingTarget
             TargetTrackingScalingPolicyConfiguration:
-                TargetValue: 50
+                TargetValue: 40
                 PredefinedMetricSpecification:
                     PredefinedMetricType: "ECSServiceAverageCPUUtilization"
                 ScaleInCooldown: 60
